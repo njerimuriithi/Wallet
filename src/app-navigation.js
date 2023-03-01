@@ -4,14 +4,14 @@ export const navigation = [
     path: '/home',
     icon: 'home'
   },
-  
+  //Remember to delete profile folder
   
     
     
       {
         text: 'Transactions',
         path: '/transactions',
-        icon:'money'
+        icon: 'money'
       }
     
   
