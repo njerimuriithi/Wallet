@@ -6,7 +6,11 @@ export const navigation = [
   },
   //Remember to delete profile folder
   
-    
+  //{
+   //text: 'Profile',
+    //path: '/profile',
+   // icon: 'profile'
+  //},
     
       {
         text: 'Transactions',

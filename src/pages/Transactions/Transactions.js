@@ -1,122 +1,167 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
+import 'devextreme/dist/css/dx.light.css';
+//import './App.css'
 import 'devextreme/data/odata/store';
-import { Button } from 'devextreme-react/button';
-import { useNavigate } from 'react-router-dom';
-import DataGrid, {
+
+import {
+  DataGrid,
+  ColumnChooser,
+  ColumnFixing,
   Column,
-  Pager,
-  Paging,
+  RequiredRule,
   FilterRow,
-  Lookup
+  SearchPanel,
+  GroupPanel,
+  Selection,
+  Summary,
+  GroupItem,
+  Editing,
+  Grouping,
+  Toolbar,
+  Item,
+  MasterDetail,
+  Export
 } from 'devextreme-react/data-grid';
+import { Button } from 'devextreme-react/button';
 
-export default function Transactions() {
-  const navigate = useNavigate();
+import { transactions } from './transactiondetails';
+import { Workbook } from 'exceljs';
+import saveAs from 'file-saver';
+import { exportDataGrid } from 'devextreme/excel_exporter';
+import { jsPDF } from 'jspdf';
+import { exportDataGrid as exportDataGridToPdf} from 'devextreme/pdf_exporter';
+
+const exportFormats = ['xlsx', 'pdf'];
+
+function SelectedTransaction(props) {
+  if(props.transactions) {
+    return (
+      <p id="selected-transaction">
+        Selected transaction: {props.transactions.TransactionName}
+      </p>
+    );
+  }
+  return null;
+}
+
+function DetailSection(props) {
+  const transaction = props.data.data;
   return (
-
-    <React.Fragment>
-      <h2 className={'content-block'}>Transactions
-      <Button
-       onClick={()=>navigate("/addnewtransactions")} 
-        text="Add New Transaction"
+    <div>
+      <img
+        className="employee-photo"
+        alt={transaction.TransactionName}
+        src={transaction.Evidencepayment}
       />
-      </h2>
-     
+      <p className="employee-notes">{transaction.Notes}</p>
+    </div>
+  );
+}
 
+function exportGrid(e) {
+  if (e.format === 'xlsx') {
+    const workbook = new Workbook(); 
+    const worksheet = workbook.addWorksheet("Main sheet"); 
+    exportDataGrid({ 
+      worksheet: worksheet, 
+      component: e.component,
+    }).then(function() {
+      workbook.xlsx.writeBuffer().then(function(buffer) { 
+        saveAs(new Blob([buffer], { type: "application/octet-stream" }), "DataGrid.xlsx"); 
+      }); 
+    }); 
+    e.cancel = true;
+  } 
+  else if (e.format === 'pdf') {
+    const doc = new jsPDF();
+    exportDataGridToPdf({
+      jsPDFDocument: doc,
+      component: e.component,
+    }).then(() => {
+      doc.save('DataGrid.pdf');
+    });
+  }
+}
+
+function App() {
+  const [SelectedTransaction, setSelectedTransaction] = useState();
+  const [expanded, setExpanded] = useState(true);
+  const selectTransaction = useCallback((e) => {
+    e.component.byKey(e.currentSelectedRowKeys[0]).done(transaction => {
+        setSelectedTransaction(transaction);
+    });
+  }, []);
+
+  return (
+    <div className="App">
       <DataGrid
-        className={'dx-card wide-card'}
-        //dataSource={dataSource}
-        showBorders={false}
-        focusedRowEnabled={true}
-        defaultFocusedRowIndex={0}
+        id="dataGrid"
+        dataSource={transactions}
+        keyExpr="T_ID"
+        allowColumnResizing={true}
         columnAutoWidth={true}
-        columnHidingEnabled={true}
-      >
-        <Paging defaultPageSize={10} />
-        <Pager showPageSizeSelector={true} showInfo={true} />
-        <FilterRow visible={true} />
-
-        <Column dataField={'Transaction_ID'} width={90} hidingPriority={2} />
-        <Column
-          dataField={'T_Name'}
-          width={190}
-          caption={'Transaction Name'}
-          hidingPriority={8}
-        />
-        <Column
-          dataField={'T_Vendor'}
-          caption={'Vendor'}
-          hidingPriority={6}
-        />
-        <Column
-          dataField={'T_Amount'}
-          dataType={'Number'}
-          caption={'Priority'}
-          hidingPriority={5}
-        >
-          {/* <Lookup
-            dataSource={priorities}
-            valueExpr={'value'}
-            displayExpr={'name'}
-          />*/}
+        allowColumnReordering={true}
+        onSelectionChanged={selectTransaction}
+        onExporting={exportGrid}>
+        <ColumnChooser enabled={true} />
+        <Column dataField="TransactionName">
+          <RequiredRule />
+        </Column>
+        <Column dataField="VendorName">
+          <RequiredRule />
         </Column>
         <Column
-          dataField={'T_TransactionCost'}
-          caption={'Transaction Cost'}
-          dataType={'Number'}
-          hidingPriority={7}
+          dataField="TransactioDate"
+          dataType="date"
+          width={100}>
+          <RequiredRule />
+        </Column>
+     
+        <Column dataField="AmountSpent" />
+      
+        <Column dataField="TransactionCost" />
+        <Column dataField="Category" width={100}/>
+        <Column dataField="ModeOfPayment" visible={false} />
+        <ColumnFixing enabled={true} />
+        <FilterRow visible={true} />
+        <SearchPanel visible={true} />
+        <GroupPanel visible={true} />
+        <Selection mode="single" />
+        <Summary>
+          <GroupItem
+            summaryType="count"
+          />
+        </Summary>
+        <Editing
+          mode="popup"
+          allowUpdating={true}
+          allowDeleting={true}
+          allowAdding={true}
         />
-        <Column
-          dataField={'T_DateofTransaction'}
-          caption={'Start Date'}
-          dataType={'date'}
-          hidingPriority={3}
+        <Grouping autoExpandAll={expanded} />
+        <Toolbar>
+          <Item name="groupPanel" />
+          <Item location="after">
+            <Button
+                text={expanded ? 'Collapse All' : 'Expand All'}
+                width={136}
+                onClick={() => setExpanded(prevExpanded => !prevExpanded)}
+            />
+          </Item>
+          <Item name="addRowButton" showText="always" />
+          <Item name="exportButton" />
+          <Item name="columnChooserButton" />
+          <Item name="searchPanel" />
+        </Toolbar>
+        <MasterDetail
+          enabled={true}
+          component={DetailSection}
         />
-         <Column
-          dataField={'T_Priority'}
-          caption={'Priority'}
-          dataType={'boolean'}
-          hidingPriority={4}
-        />
-        {/*
-        <Column
-          dataField={'Task_Priority'}
-          caption={'Priority'}
-          name={'Priority'}
-          hidingPriority={1}
-        />
-        <Column
-          dataField={'Task_Completion'}
-          caption={'Completion'}
-          hidingPriority={0}
-        />*/}
+        <Export enabled={true} formats={exportFormats} />
       </DataGrid>
-    </React.Fragment>
-)}
+      <selectTransaction employee={selectTransaction} />
+    </div>
+  );
+}
 
-{/*const dataSource = {
-  store: {
-    type: 'odata',
-    key: 'Transaction_ID',
-    url: 'https://js.devexpress.com/Demos/DevAV/odata/Tasks'
-  },
-  expand: 'ResponsibleEmployee',
-  select: [
-    'Transaction_ID',
-    'T_Name',
-    'T_Vendor',
-    'T_Amount',
-    'T_TransactionCost',
-    'T_DateofTransaction',
-    'T_Priority',
-    
-  ]
-};
-
-const priorities = [
-  { name: 'High', value: 4 },
-  { name: 'Urgent', value: 3 },
-  { name: 'Normal', value: 2 },
-  { name: 'Low', value: 1 }
-];
-*/}
+export default App;
