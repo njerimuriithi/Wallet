@@ -5,7 +5,17 @@
     display: inline-block;
   }
 }
+.main{
+  font-family: Georgia, 'Times New Roman', Times, serif;
 
+}
+.Title{
+  display:flex;
+  justify-content: center;
+  align-items: center;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-weight: 400;
+}
 .devextreme-logo {
   width: 200px;
   height: 34px;
@@ -32,3 +42,64 @@
     }
   }
 }
+.Cards
+{
+  display: grid;
+  grid-template-columns: auto auto auto ;
+  grid-gap: 5px;
+  justify-content: flex-start;
+  padding: 5px;
+}
+
+.CardContents
+{
+ background-color:white;
+ display: inline-block;
+ height: 100px !important;
+ width: 160px !important;
+ width: -moz-fit-content;
+ border-radius: 5px;
+ width: fit-content;
+ box-shadow: 10px 10px 5px wheat;
+
+  
+}
+.card__thumb
+{
+width: 35px;
+height: 30px;
+margin-top: 7px;
+margin-right : 5px; 
+float:left;
+}
+.CardTitle
+{
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  float:left;
+ 
+}
+.CardTxt
+{
+  font-size:15px !important ;
+  margin-top:-10px !important;
+  margin-left : 45px;
+  font-weight: 600;
+}
+.list-container {
+
+  width: 50%;
+  height: auto;
+  position: absolute;
+  margin-top: 25px;
+  margin-right: 10px;
+ 
+}
+.analysis_Section{
+
+  display: inline-flex;
+  float: right;
+  margin-top: -30px;
+  
+}
+
